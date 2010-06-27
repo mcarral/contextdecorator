@@ -38,7 +38,6 @@ CLASSIFIERS = [
     'Operating System :: OS Independent',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: Libraries :: Python Modules',
-    'Topic :: Software Development :: Testing',
 ]
 
 AUTHOR = 'Michael Foord'
