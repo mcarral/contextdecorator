@@ -46,3 +46,12 @@ contextdecorator works with Python 2.4+ including Python 3.
 Repository and issue tracker:
 
 * `contextdecorator on google code <http://code.google.com/p/contextdecorator/>`_
+
+The project is available for download from `PyPI <http://pypi.python.org/pypi/contextdecorator>`_
+so it can be easily installed:
+
+    | ``pip install -U contextdecorator``
+    | ``easy_install -U contextdecorator``
+
+The tests require `unittest2 <http://pypi.python.org/pypi/unittest2>`_
+to run.
