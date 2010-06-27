@@ -64,8 +64,10 @@ def _reraise(cls, val, tb):
     raise cls, val, tb
 """)
 
+
 __all__ = ['__version__', 'ContextDecorator']
-__version__ = '1.0'
+
+__version__ = '0.9.0'
 
 
 EXC = (None, None, None)
