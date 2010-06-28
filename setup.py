@@ -14,8 +14,6 @@ NAME = 'contextdecorator'
 MODULES = ['contextdecorator']
 DESCRIPTION = 'Create APIs that work as decorators and as context managers.'
 
-URL = "http://www.voidspace.org.uk/python/mock/"
-'http://www.voidspace.org.uk/downloads/mock-%s.zip' % __version__
 
 readme = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(readme).read()
@@ -55,6 +53,5 @@ setup(
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     keywords=KEYWORDS,
-    url=URL,
     classifiers=CLASSIFIERS,
 )
