@@ -1,47 +1,66 @@
 If you're a library or framework creator then it is nice to be able to create
 APIs that can be used *either* as decorators or context managers.
 
-You just subclasss ``ContextDecorator`` and implement ``before`` and ``after``
-methods. As an added piece of goodness the ``after`` method provides the
-optional exception handling behaviour of `__exit__
-<http://docs.python.org/reference/datamodel.html#object.__exit__>`_ even for
-decorators.
+The contextdecorator module is a backport of new features added to the
+`contextlib module <http://docs.python.org/library/contextlib.html>`_ in 
+Python 3.2. contextdecorator works with Python 2.4+ including Python 3.
 
-Here's an example of how you use it::
+Context managers inheriting from ``ContextDecorator`` have to implement 
+``__enter__`` and ``__exit__`` as normal. 
+`__exit__ <http://docs.python.org/reference/datamodel.html#object.__exit__>`_ 
+retains its optional exception handling even when used as a decorator.
 
-    from contextdecorator import ContextDecorator
+Example::
 
-    class mycontext(ContextDecorator):
-    
-        def __init__(self, *args):
-            """Normal initialiser"""
+   from contextdecorator import ContextDecorator
 
-        def before(self):
-            """
-            Called on entering the with block or starting the decorated function.
-        
-            If used in a with statement whatever this method returns will be the
-            context manager.
-            """
-    
-        def after(self, *exc):
-            """
-            Called on exit. Arguments and return value of this method have
-            the same meaning as the __exit__ method of a normal context
-            manager.
-            """
+   class mycontext(ContextDecorator):
+      def __enter__(self):
+         print 'Starting'
+         return self
 
-    @mycontext('some', 'args')
-    def function():
-        pass
+      def __exit__(self, *exc):
+         print 'Finishing'
+         return False
 
-    with mycontext('some', 'args') as something:
-        pass
+   @mycontext()
+   def function():
+      print 'The bit in the middle'
+   
+   with mycontext():
+      print 'The bit in the middle'
 
-Both before and after methods are optional (but providing neither is somewhat 
-pointless). See the tests for more usage examples.
+Existing context managers that already have a base class can be extended by
+using ``ContextDecorator`` as a mixin class::
 
-contextdecorator works with Python 2.4+ including Python 3.
+   from contextdecorator import ContextDecorator
+
+   class mycontext(ContextBaseClass, ContextDecorator):
+      def __enter__(self):
+         return self
+
+      def __exit__(self, *exc):
+         return False
+
+contextdecorator also contains an implementation of `contextlib.contextmanager
+<http://docs.python.org/library/contextlib.html#contextlib.contextmanager>`_
+that uses ``ContextDecorator``. The context managers it creates can be used as
+decorators as well as in statements. ::
+
+   from contextdecorator import contextmanager
+   
+   @contextmanager
+   def mycontext(*args):
+      print 'started'
+      try:
+         yield
+      finally:
+         print 'finished!'
+   
+   @mycontext('some', 'args')
+   def function():
+      print 'In the middle'
+
 
 Repository and issue tracker:
 
@@ -55,3 +74,19 @@ so it can be easily installed:
 
 The tests require `unittest2 <http://pypi.python.org/pypi/unittest2>`_
 to run.
+
+
+CHANGELOG
+=========
+
+0.10.0 - 2010/XX/XX
+-------------------
+
+* Big change to match version in Python 3.2
+* Addition of contextmanager
+
+
+0.9.0 - 2010/06/27
+------------------
+
+Initial release

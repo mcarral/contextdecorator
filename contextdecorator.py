@@ -2,41 +2,45 @@
 # E-mail: michael AT voidspace DOT org DOT uk
 # http://pypi.python.org/pypi/contextdecorator
 '''
-Create objects that act as both context managers *and* as decorators, and behave the same in both cases.
+Create objects that act as both context managers *and* as decorators, and behave
+the same in both cases.
 
-Example:
+Context managers inheriting from ``ContextDecorator`` have to implement 
+``__enter__`` and ``__exit__`` as normal. ``__exit__`` retains its optional
+exception handling even when used as a decorator.
 
-    from contextdecorator import ContextDecorator
+Example::
 
-    class mycontext(ContextDecorator):
-    
-        def __init__(self, *args):
-            """Normal initialiser"""
+   from contextlib import ContextDecorator
 
-        def before(self):
-            """
-            Called on entering the with block or starting the decorated function.
-        
-            If used in a with statement whatever this method returns will be the
-            context manager.
-            """
-    
-        def after(self, *exc):
-            """
-            Called on exit. Arguments and return value of this method have
-            the same meaning as the __exit__ method of a normal context
-            manager.
-            """
+   class mycontext(ContextDecorator):
+      def __enter__(self):
+         print 'Starting'
+         return self
 
-    @mycontext('some', 'args')
-    def function():
-        pass
+      def __exit__(self, *exc):
+         print 'Finishing'
+         return False
 
-    with mycontext('some', 'args') as something:
-        pass
+   @mycontext()
+   def function():
+      print 'The bit in the middle'
+   
+   with mycontext():
+      print 'The bit in the middle'
 
-Both before and after methods are optional (but providing neither is somewhat pointless).
-See the tests for more usage examples.
+Existing context managers that already have a base class can be extended by
+using ``ContextDecorator`` as a mixin class::
+
+   from contextlib import ContextDecorator
+
+   class mycontext(ContextBaseClass, ContextDecorator):
+      def __enter__(self):
+         return self
+
+      def __exit__(self, *exc):
+         return False
+
 '''
 
 import sys
@@ -64,45 +68,118 @@ def _reraise(cls, val, tb):
     raise cls, val, tb
 """)
 
+try:
+    next
+except NameError:
+    # Python 2.4 / 2.5
+    def next(gen):
+        return gen.next()
 
-__all__ = ['__version__', 'ContextDecorator']
+__all__ = ['__version__', 'ContextDecorator', 'contextmanager']
 
-__version__ = '0.9.0'
+__version__ = '0.10.0'
 
 
-EXC = (None, None, None)
+_NO_EXCEPTION = (None, None, None)
 
 class ContextDecorator(object):
-    before = None
-    after = None
-        
+    "A base class or mixin that enables context managers to work as decorators."
+
     def __call__(self, f):
         @wraps(f)
         def inner(*args, **kw):
-            if self.before is not None:
-                self.before()
+            self.__enter__()
             
-            exc = EXC
+            exc = _NO_EXCEPTION
             try:
                 result = f(*args, **kw)
             except Exception:
                 exc = sys.exc_info()
             
-            catch = False
-            if self.after is not None:
-                catch = self.after(*exc)
+            catch = self.__exit__(*exc)
             
-            if not catch and exc is not EXC:
+            if not catch and exc is not _NO_EXCEPTION:
                 _reraise(*exc)
             return result
         return inner
-            
+
+
+
+class GeneratorContextManager(ContextDecorator):
+    """Helper for @contextmanager decorator."""
+
+    def __init__(self, gen):
+        self.gen = gen
+
     def __enter__(self):
-        if self.before is not None:
-            return self.before()
-    
-    def __exit__(self, *exc):
-        catch = False
-        if self.after is not None:
-            catch = self.after(*exc)
-        return catch
+        try:
+            return next(self.gen)
+        except StopIteration:
+            raise RuntimeError("generator didn't yield")
+
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            try:
+                next(self.gen)
+            except StopIteration:
+                return
+            else:
+                raise RuntimeError("generator didn't stop")
+        else:
+            if value is None:
+                # Need to force instantiation so we can reliably
+                # tell if we get the same exception back
+                value = type()
+            try:
+                self.gen.throw(type, value, traceback)
+                raise RuntimeError("generator didn't stop after throw()")
+            except StopIteration:
+                # Suppress the exception *unless* it's the same exception that
+                # was passed to throw().  This prevents a StopIteration
+                # raised inside the "with" statement from being suppressed
+                exc = sys.exc_info()[1]
+                return exc is not value
+            except:
+                # only re-raise if it's *not* the exception that was
+                # passed to throw(), because __exit__() must not raise
+                # an exception unless __exit__() itself failed.  But throw()
+                # has to raise the exception to signal propagation, so this
+                # fixes the impedance mismatch between the throw() protocol
+                # and the __exit__() protocol.
+                #
+                if sys.exc_info()[1] is not value:
+                    raise
+
+
+def contextmanager(func):
+    """@contextmanager decorator.
+
+    Typical usage:
+
+        @contextmanager
+        def some_generator(<arguments>):
+            <setup>
+            try:
+                yield <value>
+            finally:
+                <cleanup>
+
+    This makes this:
+
+        with some_generator(<arguments>) as <variable>:
+            <body>
+
+    equivalent to this:
+
+        <setup>
+        try:
+            <variable> = <value>
+            <body>
+        finally:
+            <cleanup>
+
+    """
+    @wraps(func)
+    def helper(*args, **kwds):
+        return GeneratorContextManager(func(*args, **kwds))
+    return helper
