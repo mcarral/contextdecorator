@@ -60,6 +60,9 @@ decorators as well as in statements. ::
    @mycontext('some', 'args')
    def function():
       print 'In the middle'
+      
+   with mycontext('some', 'args'):
+      print 'In the middle'
 
 
 Repository and issue tracker:
@@ -75,18 +78,3 @@ so it can be easily installed:
 The tests require `unittest2 <http://pypi.python.org/pypi/unittest2>`_
 to run.
 
-
-CHANGELOG
-=========
-
-0.10.0 - 2010/XX/XX
--------------------
-
-* Big change to match version in Python 3.2
-* Addition of contextmanager
-
-
-0.9.0 - 2010/06/27
-------------------
-
-Initial release
