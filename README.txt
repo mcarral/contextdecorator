@@ -25,7 +25,7 @@ Example::
 
    >>> @mycontext()
    ... def function():
-   ...    print('The bit in the middle')
+   ...    print 'The bit in the middle'
    ...
    >>> function()
    Starting
@@ -33,7 +33,7 @@ Example::
    Finishing
 
    >>> with mycontext():
-   ...    print('The bit in the middle')
+   ...    print 'The bit in the middle'
    ...
    Starting
    The bit in the middle
