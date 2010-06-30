@@ -57,7 +57,7 @@ that uses ``ContextDecorator``. The context managers it creates can be used as
 decorators as well as in statements. ::
 
    from contextdecorator import contextmanager
-   
+
    @contextmanager
    def mycontext(*args):
       print 'Started'
@@ -66,16 +66,21 @@ decorators as well as in statements. ::
       finally:
          print 'Finished!'
    
-   @mycontext('some', 'args')
-   def function():
-      print 'In the middle'
+   >>> @mycontext('some', 'args')
+   ... def function():
+   ...    print 'In the middle'
+   ... 
+   Started
+   In the middle
+   Finished!
+   
       
    >>> with mycontext('some', 'args'):
    ...    print 'In the middle'
    ... 
    Started
    In the middle
-   Finished
+   Finished!
 
 Repository and issue tracker:
 
