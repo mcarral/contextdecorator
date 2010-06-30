@@ -23,12 +23,21 @@ Example::
          print 'Finishing'
          return False
 
-   @mycontext()
-   def function():
-      print 'The bit in the middle'
-   
-   with mycontext():
-      print 'The bit in the middle'
+   >>> @mycontext()
+   ... def function():
+   ...    print('The bit in the middle')
+   ...
+   >>> function()
+   Starting
+   The bit in the middle
+   Finishing
+
+   >>> with mycontext():
+   ...    print('The bit in the middle')
+   ...
+   Starting
+   The bit in the middle
+   Finishing
 
 Existing context managers that already have a base class can be extended by
 using ``ContextDecorator`` as a mixin class::
@@ -51,19 +60,22 @@ decorators as well as in statements. ::
    
    @contextmanager
    def mycontext(*args):
-      print 'started'
+      print 'Started'
       try:
          yield
       finally:
-         print 'finished!'
+         print 'Finished!'
    
    @mycontext('some', 'args')
    def function():
       print 'In the middle'
       
-   with mycontext('some', 'args'):
-      print 'In the middle'
-
+   >>> with mycontext('some', 'args'):
+   ...    print 'In the middle'
+   ... 
+   Started
+   In the middle
+   Finished
 
 Repository and issue tracker:
 
