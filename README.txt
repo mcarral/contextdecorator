@@ -54,7 +54,7 @@ using ``ContextDecorator`` as a mixin class::
 contextdecorator also contains an implementation of `contextlib.contextmanager
 <http://docs.python.org/library/contextlib.html#contextlib.contextmanager>`_
 that uses ``ContextDecorator``. The context managers it creates can be used as
-decorators as well as in statements. ::
+decorators as well as in with statements. ::
 
    from contextdecorator import contextmanager
 
